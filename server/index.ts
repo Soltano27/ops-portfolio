@@ -2,31 +2,35 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-/**
- * PRECISION PATHING:
- * In production, this script runs from 'dist/index.js'.
- * The 'index.html' is sitting right next to it in the same 'dist' folder.
- */
-const staticPath =
-  process.env.NODE_ENV === "production"
-    ? __dirname
-    : path.resolve(__dirname, "..", "dist");
+// PRECISION LOGIC: Check both the current directory and the parent directory
+const possiblePaths = [
+  path.resolve(__dirname),
+  path.resolve(__dirname, "..", "dist"),
+  path.resolve(__dirname, "public"),
+];
+
+let staticPath =
+  possiblePaths.find(p => fs.existsSync(path.join(p, "index.html"))) ||
+  possiblePaths[0];
 
 app.use(express.static(staticPath));
 
 app.get("*", (_req, res) => {
-  // We explicitly check if index.html exists in the path to avoid "Not Found"
-  res.sendFile(path.join(staticPath, "index.html"), err => {
+  const indexPath = path.join(staticPath, "index.html");
+
+  res.sendFile(indexPath, err => {
     if (err) {
+      // If still not found, let's output the searched path for debugging
       res
         .status(404)
-        .send("System Error: Frontend assets not found in dist folder.");
+        .send(`System Error: Assets not found. Searched in: ${staticPath}`);
     }
   });
 });
