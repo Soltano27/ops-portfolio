@@ -9,10 +9,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 /**
- * PRECISION FIX:
- * In production, this file is bundled into 'dist/index.js'.
- * Vite also puts 'index.html' into the 'dist' folder.
- * Therefore, the static files are in the same folder as this running script.
+ * PRECISION PATHING:
+ * In production, this script runs from 'dist/index.js'.
+ * The 'index.html' is sitting right next to it in the same 'dist' folder.
  */
 const staticPath =
   process.env.NODE_ENV === "production"
@@ -22,7 +21,14 @@ const staticPath =
 app.use(express.static(staticPath));
 
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(staticPath, "index.html"));
+  // We explicitly check if index.html exists in the path to avoid "Not Found"
+  res.sendFile(path.join(staticPath, "index.html"), err => {
+    if (err) {
+      res
+        .status(404)
+        .send("System Error: Frontend assets not found in dist folder.");
+    }
+  });
 });
 
 export default app;
