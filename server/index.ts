@@ -8,13 +8,20 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// PRECISION FIX: Your build script puts everything in the root of 'dist'
-const staticPath = path.resolve(__dirname);
+/**
+ * PRECISION FIX:
+ * In production, this file is bundled into 'dist/index.js'.
+ * Vite also puts 'index.html' into the 'dist' folder.
+ * Therefore, the static files are in the same folder as this running script.
+ */
+const staticPath =
+  process.env.NODE_ENV === "production"
+    ? __dirname
+    : path.resolve(__dirname, "..", "dist");
 
 app.use(express.static(staticPath));
 
 app.get("*", (_req, res) => {
-  // Point to the index.html that Vite placed in the dist folder
   res.sendFile(path.join(staticPath, "index.html"));
 });
 
