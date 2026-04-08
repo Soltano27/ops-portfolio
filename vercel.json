@@ -14,7 +14,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/server/index.ts"
+      "destination": "server/index.ts"
     }
   ]
 }
